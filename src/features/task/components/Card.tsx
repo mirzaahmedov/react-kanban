@@ -1,4 +1,4 @@
-import { DragEvent, useEffect, useRef } from "react"
+import { DragEvent, useRef } from "react"
 import styled from "styled-components"
 
 import { Task } from "@/features/task/types"
@@ -12,6 +12,7 @@ const Container = styled.div`
   border-radius: 4px;
   box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.08);
   cursor: move;
+  width: 284px;
 `
 const Title = styled(Typography)`
   margin-bottom: 4px;
@@ -42,54 +43,42 @@ type Props = {
   task: Task
 }
 const Card = (props: Props) => {
-  const elem = useRef<HTMLDivElement | null>(null)
+  const clickOffsets = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
+  const clickElem = useRef<HTMLDivElement | null>(null)
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement
+    clickOffsets.current = { 
+      x: e.clientX - e.currentTarget.getBoundingClientRect().left,
+      y: e.clientY - e.currentTarget.getBoundingClientRect().top
+    }
 
-    elem.current = target.cloneNode(false) as HTMLDivElement
-    document.body.appendChild(elem.current)
+    clickElem.current = e.currentTarget.cloneNode(true) as HTMLDivElement
 
-    target.style.opacity = '0'
+    document.body.appendChild(clickElem.current)
 
-    e.dataTransfer.setData('text/plain', props.task.id)
+    e.currentTarget.style.opacity = '0'
+  }
+  const handleDrag = (e: DragEvent<HTMLDivElement>) => {
+    if (clickElem.current) {
+      clickElem.current.style.position = 'absolute'
+      clickElem.current.style.left = '0px'
+      clickElem.current.style.top = '0px'
+      clickElem.current.style.transform = `translate(${e.clientX - clickOffsets.current.x}px, ${e.clientY - clickOffsets.current.y}px)`
+    }
   }
   const handleDragEnd = (e: DragEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement
-    
-    document.body.removeChild(elem.current!)
-    elem.current = null
-  
-    target.style.opacity = '1'
+    e.currentTarget.style.opacity = '1'
+
+    if (clickElem.current) {
+      document.body.removeChild(clickElem.current)
+    }
   }
-
-  useEffect(() => {
-    const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-
-      const target = elem.current
-
-      if (target) {
-        target.style.position = 'absolute'
-        target.style.left = `0px`
-        target.style.right = `0px`
-        target.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`
-      }
-    }
-
-    // @ts-ignore
-    window.addEventListener('dragover', handleDragOver)
-
-    return () => {
-      // @ts-ignore
-      window.removeEventListener('dragover', handleDragOver)
-    }
-  }, [])
 
   return (
     <Container 
       onDragStart={handleDragStart} 
       onDragEnd={handleDragEnd}
+      onDrag={handleDrag}
       draggable
     >
       <Title as="h6" variant="base-bold">{props.task.title}</Title>
