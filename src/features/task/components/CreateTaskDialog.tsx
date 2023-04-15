@@ -71,7 +71,7 @@ const CreateColDialog = ({ onClose, col }: Props) => {
       <Form onSubmit={handleSubmit}>
         <TextField label="Title" name="name" type="text" />
         <TextField textarea label="Description" name="description" type="text" />
-        <TextField label="Attached image(Only .jpg image)" name="attached" type="file" accept="image/jpg" />
+        <TextField label="Attached image(Only .jpg image)" name="attached" type="file" accept="image/jpg, image/jpeg" />
         <Button primary type="submit">Create</Button>
         <Button type="reset" onClick={onClose}>Cancel</Button>
       </Form>
