@@ -139,9 +139,7 @@ const Board = () => {
             </ColumnHeader>
             {Array.isArray(tasks) && tasks.length > 0 ? tasks?.filter((task) => task.col === col.id).map((task) => (
               <Card key={task.id} task={task} />
-            )) : (
-              <Typography variant="base-bold">No tasks</Typography>
-            )}
+            )) : null}
             <Button style={{ marginTop: 8, width: "100%" }} onClick={() => {setIsCreateTaskDialogOpen(true); setCurrentCol(col.id)}}><Create /> Add task</Button>
           </Column>
         )) : null}

@@ -11,6 +11,7 @@ const Container = styled.div`
   max-width: 400px;
   box-shadow: 0 10px 20px 10px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
+  background-color: #fff;
 `;
 const Header = styled.h5`
   padding: 16px;
