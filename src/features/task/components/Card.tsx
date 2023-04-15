@@ -1,4 +1,6 @@
 import { DragEvent, useRef } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import axios from "axios"
 import styled from "styled-components"
 
 import { Task } from "@/features/task/types"
@@ -13,12 +15,27 @@ const Container = styled.div`
   box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.08);
   cursor: move;
   width: 284px;
+
+  &.dragging {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 10px 20px 10px rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+  }
 `
 const Title = styled(Typography)`
   margin-bottom: 4px;
 `
 const Description = styled(Typography)`
   margin-bottom: 8px;
+`
+const Media = styled.img`
+  margin-bottom: 8px;
+  width: 100%;
+  background-color: #f5f5f5;
+  border-radius: 4px;
 `
 const Button = styled.button`
   appearance: none;
@@ -45,6 +62,18 @@ type Props = {
 const Card = (props: Props) => {
   const clickOffsets = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
   const clickElem = useRef<HTMLDivElement | null>(null)
+
+  const queryClient = useQueryClient()
+
+  const deleteTask = useMutation(async () => {
+      const { data } = await axios.delete(`http://localhost:3000/tasks/${props.task.id}`)
+      return data
+    }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['tasks'])
+      }
+    }
+  )
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     clickOffsets.current = { 
@@ -53,16 +82,15 @@ const Card = (props: Props) => {
     }
 
     clickElem.current = e.currentTarget.cloneNode(true) as HTMLDivElement
+    clickElem.current.classList.add('dragging')
 
     document.body.appendChild(clickElem.current)
 
     e.currentTarget.style.opacity = '0'
+    e.dataTransfer.setData("text/plain", props.task.id.toString())
   }
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     if (clickElem.current) {
-      clickElem.current.style.position = 'absolute'
-      clickElem.current.style.left = '0px'
-      clickElem.current.style.top = '0px'
       clickElem.current.style.transform = `translate(${e.clientX - clickOffsets.current.x}px, ${e.clientY - clickOffsets.current.y}px)`
     }
   }
@@ -72,6 +100,9 @@ const Card = (props: Props) => {
     if (clickElem.current) {
       document.body.removeChild(clickElem.current)
     }
+  }
+  const handleDelete = () => {
+    deleteTask.mutate()
   }
 
   return (
@@ -83,7 +114,10 @@ const Card = (props: Props) => {
     >
       <Title as="h6" variant="base-bold">{props.task.title}</Title>
       <Description variant="small-normal" color="secondary">{props.task.description}</Description>
-      <Button><Delete /> Delete</Button>
+      {props.task.attachment ? (
+        <Media alt="Attached file" src={`data:image/jpeg;charset=utf-8;${props.task.attachment}`} />
+      ) : null}
+      <Button onClick={handleDelete}><Delete /> Delete</Button>
     </Container>
   )
 }

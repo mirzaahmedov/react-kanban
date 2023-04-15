@@ -9,6 +9,7 @@ type Variant = `${Size}-${Weight}`
 type Props = {
   variant?: Variant
   color?: Color
+  uppercase?: boolean
 }
 
 
@@ -26,13 +27,18 @@ const colors: Record<Color, string> = {
   black: "#000",
 }
 const Typography = styled.p<Props>`
-  ${({ variant = "base-normal", color = "black" }) => {
+  & > svg {
+    vertical-align: middle;
+  }
+  
+  ${({ variant = "base-normal", color = "black", uppercase = false }) => {
     const [size, weight] = variant.split("-") as [Size, Weight]
 
     return css`
       font-size: ${scales[size]}rem;
       font-weight: ${weight === "bold" ? 700 : 400};
       color: ${colors[color]};
+      text-transform: ${uppercase ? "uppercase" : "none"};
     `
   }}
 `

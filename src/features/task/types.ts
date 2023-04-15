@@ -1,9 +1,7 @@
-export type Status = 'todo' | 'in-progress' | 'done';
-
 export type Task = {
   id: string;
   title: string;
   description?: string;
-  status: Status;
+  col: string;
   attachment?: string;
 }
